@@ -1,0 +1,46 @@
+{
+  "name": "clipboard-history",
+  "version": "0.1.0",
+  "description": "Lightweight clipboard history manager (Electron + React + Vite)",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
+    "dev:main": "npm run build:main:ts && wait-on http://localhost:5173 && cross-env NODE_ENV=development VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "dev:renderer": "vite",
+    "build": "vite build && npm run build:main",
+    "build:main:ts": "tsc -p electron && tsc -p preload",
+    "build:main": "npm run build:main:ts && electron-builder",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "electron-store": "^8.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.5.2",
+    "vite": "^8.3.0",
+    "wait-on": "^8.0.1"
+  },
+  "volta": {
+    "node": "24.21.0"
+  }
+  ,"build": {
+    "files": [
+      "dist/**",
+      "node_modules/**",
+      "package.json"
+    ]
+  }
+}
