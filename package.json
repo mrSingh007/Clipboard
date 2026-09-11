@@ -1,46 +1,40 @@
 {
   "name": "clipboard-history",
   "version": "0.1.0",
-  "description": "Lightweight clipboard history manager (Electron + React + Vite)",
+  "description": "Lightweight clipboard history manager for macOS (Electron + TypeScript)",
   "main": "dist/main/main.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
-    "dev:main": "npm run build:main:ts && wait-on http://localhost:5173 && cross-env NODE_ENV=development VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
-    "dev:renderer": "vite",
-    "build": "vite build && npm run build:main",
-    "build:main:ts": "tsc -p electron && tsc -p preload",
-    "build:main": "npm run build:main:ts && electron-builder",
+    "build": "tsc -p electron && tsc -p renderer && cp renderer/index.html renderer/style.css dist/renderer/",
+    "start": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "better-sqlite3": "^13.0.3",
-    "electron-store": "^8.2.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "electron-store": "^8.2.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^6.1.1",
-    "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
     "electron": "^44.3.0",
     "electron-builder": "^26.15.3",
-    "typescript": "^5.5.2",
-    "vite": "^8.3.0",
-    "wait-on": "^8.0.1"
+    "typescript": "^5.5.2"
   },
-  "volta": {
-    "node": "24.21.0"
-  }
-  ,"build": {
+  "build": {
+    "appId": "com.clipboardhistory.app",
+    "productName": "Clipboard History",
+    "directories": {
+      "output": "release"
+    },
     "files": [
       "dist/**",
-      "node_modules/**",
+      "assets/**",
+      "!assets/src/**",
       "package.json"
-    ]
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns"
+    }
   }
 }

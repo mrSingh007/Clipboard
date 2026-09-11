@@ -1,17 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "jsx": "react"
+    "sourceMap": true
   },
-  "include": ["electron/**/*.ts", "src/**/*.tsx", "src/**/*.ts", "preload/**/*.ts"]
+  "files": []
 }

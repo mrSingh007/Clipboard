@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:" />
+  <title>Clipboard History</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="toolbar">
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          id="search"
+          type="text"
+          placeholder="Search clipboard..."
+          autofocus
+          autocomplete="off"
+          aria-label="Search clipboard history"
+          aria-autocomplete="list"
+          aria-controls="list"
+        />
+        <button id="clear-search" class="clear-search" type="button" aria-label="Clear search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="toolbar-actions">
+        <button id="settings-toggle" class="icon-button settings-toggle" type="button" aria-label="Show settings" aria-expanded="false" aria-controls="settings-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+        <button id="clear-all" class="icon-button" type="button" aria-label="Clear unpinned clipboard history" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div id="error" class="error-toast" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4M12 16h.01" />
+      </svg>
+      <span id="error-text"></span>
+      <button id="dismiss-error" type="button" aria-label="Dismiss error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <section id="settings-panel" class="settings-panel" aria-label="Settings" hidden>
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="close-settings" class="icon-button" type="button" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h3>General</h3>
+          <label class="setting-row">
+            <span>Monitor clipboard</span>
+            <input id="setting-monitoring" type="checkbox" />
+          </label>
+          <label class="setting-row">
+            <span>Start at login</span>
+            <input id="setting-launch-at-login" type="checkbox" />
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>History</h3>
+          <label class="setting-row">
+            <span>Maximum unpinned items</span>
+            <select id="setting-max-items">
+              <option value="100">100</option>
+              <option value="500">500</option>
+              <option value="1000">1,000</option>
+              <option value="5000">5,000</option>
+              <option value="0">Unlimited</option>
+            </select>
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>Shortcut</h3>
+          <div class="setting-row shortcut-setting">
+            <span>Open history</span>
+            <div class="shortcut-display">
+              <button id="setting-shortcut" class="shortcut-button" type="button" aria-describedby="shortcut-hint"></button>
+              <span id="shortcut-hint" class="shortcut-hint">Click, then press the new key combination. Esc cancels.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <ul id="list" class="list" role="listbox" aria-label="Clipboard history">
+      <li class="loading-state" role="status" aria-live="polite">
+        <div class="spinner" aria-hidden="true"></div>
+        <span>Loading clipboard history…</span>
+      </li>
+    </ul>
+
+    <div id="empty" class="empty-state" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+        <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      </svg>
+      <p id="empty-text"></p>
+      <button id="empty-clear-search" class="clear-search-link" type="button" hidden>Clear search</button>
+    </div>
+
+    <footer class="footer">
+      <kbd id="footer-shortcut"></kbd> to open · <kbd>↑↓</kbd> navigate · <kbd>⏎</kbd> copy · <kbd>Esc</kbd> close · <kbd id="footer-settings-key">⌘S</kbd> settings
+    </footer>
+  </main>
+
+  <template id="item-template">
+    <li class="list-item" role="option">
+      <div class="item-content"></div>
+      <div class="item-meta">
+        <time class="item-time"></time>
+        <span class="item-chars"></span>
+        <div class="item-actions">
+          <button type="button" class="action-button pin-button" data-action="pin">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 17v5M9 12H3v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1h-6M9 8V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v5" />
+            </svg>
+          </button>
+          <button type="button" class="action-button delete-button" data-action="delete" aria-label="Delete item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>

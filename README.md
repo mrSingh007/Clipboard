@@ -1,56 +1,43 @@
 # Clipboard History
 
-A lightweight clipboard manager built with **Electron**, **React**, **Vite** and **TypeScript**.
+A lightweight clipboard manager for macOS built with **Electron** and **TypeScript**. No frameworks, no bundler.
 
 ## Features
-- Continuously monitors the system clipboard (text only).
-- Stores history in a local SQLite database (`clipboard.sqlite` in the app data folder).
-- Global shortcut `Cmd+Shift+V` (configurable) opens a small searchable window.
+- Monitors the system clipboard (text only) and stores history in a local SQLite database (`clipboard.sqlite` in the app data folder).
+- Re-copying text you already have moves it to the top instead of adding a duplicate.
+- Global shortcut `Cmd+Shift+V` opens a small searchable window; the window hides again after you pick an item and focus returns to the app you came from.
 - Tray icon with menu to open the history, pause monitoring and quit.
 - Pin items, delete individual entries or clear the whole history.
-- Settings persisted via `electron‑store`.
+- Settings panel (⌘S) for monitoring, start at login, history size and the global shortcut, which you change by clicking it and pressing a new key combination. Persisted via `electron-store`.
 
 ## Development
 ```bash
-# install dependencies
-npm install
-
-# start the app in development mode (renderer via Vite, main process via Electron)
-npm run dev
+npm install     # also rebuilds better-sqlite3 for Electron
+npm start       # compile and launch the app
 ```
 
-The renderer UI will be served by Vite at `http://localhost:5173`. The Electron main process loads that URL automatically.
+There is no dev server. `npm run build` runs `tsc` for the main process and the renderer and copies the static renderer files into `dist/`.
 
-## Building a production bundle (macOS)
+## Packaging (macOS)
 ```bash
-npm run build   # creates a packaged app in the `dist` folder
+npm run dist    # builds and packages with electron-builder into release/
 ```
-The build uses `electron‑builder`; the generated `.app` can be distributed.
 
 ## Project structure
 ```
 clipboard-history/
-├─ electron/           # main process source
-│   ├─ main.ts
-│   ├─ database/      # SQLite handling
-│   │   ├─ database.ts
-│   │   └─ clipboard-repository.ts
-│   └─ settings/       # persistent settings
-│
-├─ preload/           # context‑bridge exposing safe APIs
-│   └─ preload.ts
-│
-├─ src/                # renderer (React) source
+├─ electron/            # main process (CommonJS, tsc → dist/main)
+│   ├─ main.ts          # window, tray, clipboard monitor, IPC
+│   ├─ preload.ts       # context bridge exposing window.clipboardHistory
+│   ├─ database.ts      # SQLite access
+│   └─ settings.ts      # electron-store wrapper + IPC validation
+├─ renderer/            # UI (plain HTML/CSS/TS, tsc → dist/renderer)
 │   ├─ index.html
-│   ├─ main.tsx
-│   ├─ App.tsx
-│   └─ App.css
-│
-├─ dist/               # build output (generated after `npm run build`)
-├─ package.json
-├─ tsconfig.json
-├─ vite.config.ts
-└─ README.md
+│   ├─ style.css
+│   └─ renderer.ts
+├─ shared/types.d.ts    # types shared by main, preload and renderer
+├─ assets/              # tray icons
+└─ dist/                # build output
 ```
 
 ## License
