@@ -31,7 +31,7 @@ History and settings stay on your computer; there is no account or cloud sync. T
 | Platform | Status |
 | --- | --- |
 | **macOS** | Primary platform. macOS packaging is configured, and the build and screenshot were verified on macOS. |
-| **Windows** | The runtime includes Ctrl shortcuts and guards macOS-specific APIs, but Windows has not been verified. The current build script uses Unix `cp`, so use the PowerShell steps below to try a local Windows build. |
+| **Windows** | The build scripts work in standard Windows shells, and CI is configured to test and package Windows builds. Interactive Windows behavior and installation still need manual verification. |
 
 Build on the operating system where you intend to use the app. Windows instructions are an unverified source-build path, not a guarantee of compatibility.
 
@@ -53,7 +53,6 @@ This project does **not distribute prebuilt releases**. Clone it, install depend
 git clone https://github.com/mrSingh007/clipboard.git
 cd clipboard
 npm ci
-npm run build
 npm run dist -- --publish never
 ```
 
@@ -68,16 +67,13 @@ Local builds are not configured for signing or notarization. If macOS blocks you
 
 ### Windows (experimental, PowerShell)
 
-The standard `npm run build`, `npm start`, and `npm run dist` scripts depend on `cp`, which is unavailable in a standard Windows shell. These equivalent PowerShell steps compile and copy the files before invoking the packager directly:
+Use the same build script, selecting the Windows installer target:
 
 ```powershell
 git clone https://github.com/mrSingh007/clipboard.git
 cd clipboard
 npm ci
-npx tsc -p electron
-npx tsc -p renderer
-Copy-Item renderer/index.html, renderer/style.css -Destination dist/renderer/
-npx electron-builder --win nsis --publish never
+npm run dist -- --win nsis --publish never
 ```
 
 After every command succeeds, run the generated installer `.exe` in `release/`, launch **Clipboard History**, and open history from the system tray or with **Ctrl+Shift+V**. Windows packaging and installation still need testing on a Windows machine.
@@ -97,15 +93,16 @@ Clipboard text may include sensitive information. Pause monitoring before copyin
 
 ## Development
 
-After `npm ci`, on macOS:
+After `npm ci`, on macOS or Windows:
 
 ```bash
 npm start
 ```
 
-This compiles and launches the app. There is no development server or automatic reload. On Windows, run the compilation and `Copy-Item` commands above, then `npx electron .`.
+This compiles and launches the app. There is no development server or automatic reload.
 
-- `npm run build` — compile main and renderer TypeScript and copy static UI files into `dist/` (currently requires Unix `cp`).
+- `npm run build` — compile main and renderer TypeScript and copy static UI files into `dist/`.
+- `npm test` — compile and test settings validation and SQLite history in an isolated Electron process.
 - `npm run dist -- --publish never` — build and package locally into `release/`.
 - History lives in `clipboard.sqlite` in Electron’s app-specific user-data directory; settings use `electron-store` in the same directory.
 - A reduced history limit is applied when the next clipboard entry is recorded.
@@ -120,6 +117,16 @@ clipboard/
 ├── dist/           # Generated compiled app (ignored by Git)
 └── release/        # Generated local packages (ignored by Git)
 ```
+
+## Continuous integration
+
+[GitHub Actions](.github/workflows/ci.yml) runs on pull requests targeting `main` (opening, reopening, and new commits), every push to `main` (including merges), and manual dispatches.
+
+Each macOS (Apple Silicon) and Windows (x64) job installs locked dependencies with `npm ci`, compiles TypeScript, runs the automated tests, and then builds an installer. Tests use temporary app data, not your personal clipboard history. Packaging only runs after tests pass. CI does not sign, publish, or upload installers; users still build from source.
+
+Run `npm test` before opening a PR. PR checks catch problems before review and merging; the run on `main` verifies the integrated result. Outdated runs for the same PR are canceled. Jobs use read-only repository permissions, pinned GitHub Actions, and no signing secrets. Dependabot checks those Action pins weekly.
+
+To enforce this process, configure a GitHub ruleset or branch protection for `main`: require a pull request, approval, an up-to-date branch, and the **Test and build (macOS)** and **Test and build (Windows)** checks before merging. The workflow alone does not enable these repository settings. Automated checks do not replace manual testing of clipboard capture, global shortcuts, the tray, or installation.
 
 ## License
 

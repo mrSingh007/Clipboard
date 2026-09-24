@@ -4,7 +4,8 @@
   "description": "Lightweight clipboard history manager for macOS (Electron + TypeScript)",
   "main": "dist/main/main.js",
   "scripts": {
-    "build": "tsc -p electron && tsc -p renderer && cp renderer/index.html renderer/style.css dist/renderer/",
+    "build": "tsc -p electron && tsc -p renderer && node scripts/copy-renderer.cjs",
+    "test": "npm run build && node test/run.cjs",
     "start": "npm run build && electron .",
     "dist": "npm run build && electron-builder",
     "postinstall": "electron-builder install-app-deps"
