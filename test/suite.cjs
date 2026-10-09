@@ -31,7 +31,7 @@ app.whenReady().then(() => {
   test('settings defaults and files are isolated', () => {
     assert.equal(path.dirname(settings.path), process.env.CLIPBOARD_TEST_USER_DATA);
     assert.deepEqual({ ...settings.store }, {
-      monitoring: true, shortcut: 'CommandOrControl+Shift+V', maxItems: 1000, launchAtLogin: true,
+      monitoring: true, shortcut: 'CommandOrControl+Shift+V', maxItems: 20, launchAtLogin: true,
     });
   });
   test('valid settings include unlimited history and normalize shortcut whitespace', () => {

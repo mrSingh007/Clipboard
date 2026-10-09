@@ -5,7 +5,7 @@ export const settings = new Store<Settings>({
   defaults: {
     monitoring: true,
     shortcut: 'CommandOrControl+Shift+V',
-    maxItems: 1000,
+    maxItems: 20,
     launchAtLogin: true,
   },
 });

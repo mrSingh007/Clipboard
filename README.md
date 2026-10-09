@@ -22,7 +22,7 @@ History and settings stay on your computer; there is no account or cloud sync. T
 - Clipboard monitoring while the app runs, with a pause/resume option in the tray menu or settings.
 - Search across saved text. Re-copying an existing entry moves it to the top without creating a duplicate.
 - Pin or delete individual entries. Clear history removes only unpinned entries.
-- Keep 1,000 unpinned entries by default, choose another limit, or keep unlimited history. Pinned entries do not count toward the limit.
+- Keep 20 unpinned entries by default, choose another limit, or keep unlimited history. Pinned entries do not count toward the limit.
 - Configurable global shortcut and start-at-login setting. Start at login takes effect only in a packaged app.
 - Local SQLite storage that survives app restarts.
 
