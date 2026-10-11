@@ -1,5 +1,10 @@
 import Store from 'electron-store';
-import type { Settings } from '../shared/types';
+import { nativeTheme } from 'electron';
+import type { Settings, Theme } from '../shared/types';
+
+function getSystemTheme(): Theme {
+  return nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+}
 
 export const settings = new Store<Settings>({
   defaults: {
@@ -7,6 +12,7 @@ export const settings = new Store<Settings>({
     shortcut: 'CommandOrControl+Shift+V',
     maxItems: 1000,
     launchAtLogin: true,
+    theme: getSystemTheme(),
   },
 });
 
@@ -30,6 +36,9 @@ export function parseSetting(key: unknown, value: unknown): Partial<Settings> {
       if (typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 10000) {
         return { maxItems: value };
       }
+      break;
+    case 'theme':
+      if (value === 'light' || value === 'dark') return { theme: value };
       break;
   }
   throw new Error(`Invalid setting: ${String(key)}`);

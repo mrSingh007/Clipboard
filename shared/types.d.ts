@@ -9,11 +9,14 @@ export interface HistoryItem {
   pinned: 0 | 1;
 }
 
+export type Theme = 'light' | 'dark';
+
 export interface Settings {
   monitoring: boolean;
   shortcut: string;
   maxItems: number;
   launchAtLogin: boolean;
+  theme: Theme;
 }
 
 /** The API the preload script exposes to the renderer as `window.clipboardHistory`. */

@@ -1,4 +1,4 @@
-import type { HistoryItem, Settings } from '../shared/types';
+import type { HistoryItem, Settings, Theme } from '../shared/types';
 
 const api = window.clipboardHistory;
 const isMac = navigator.userAgent.includes('Mac');
@@ -27,6 +27,7 @@ const ui = {
   launchAtLogin: element<HTMLInputElement>('setting-launch-at-login'),
   maxItems: element<HTMLSelectElement>('setting-max-items'),
   shortcut: element<HTMLButtonElement>('setting-shortcut'),
+  theme: element<HTMLButtonElement>('setting-theme'),
   list: element<HTMLUListElement>('list'),
   empty: element<HTMLDivElement>('empty'),
   emptyText: element<HTMLParagraphElement>('empty-text'),
@@ -198,6 +199,12 @@ function clearSearch() {
 
 let currentShortcut = '';
 
+function applyTheme(theme: Theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  ui.theme.setAttribute('aria-checked', theme === 'dark' ? 'true' : 'false');
+  ui.theme.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+}
+
 function renderSettings(settings: Settings) {
   ui.monitoring.checked = settings.monitoring;
   ui.launchAtLogin.checked = settings.launchAtLogin;
@@ -205,6 +212,7 @@ function renderSettings(settings: Settings) {
   currentShortcut = settings.shortcut;
   stopRecordingShortcut();
   ui.footerShortcut.textContent = formatShortcut(settings.shortcut);
+  applyTheme(settings.theme);
 }
 
 function startRecordingShortcut() {
@@ -324,6 +332,10 @@ ui.shortcut.addEventListener('keydown', (event) => {
 ui.monitoring.addEventListener('change', () => void saveSetting('monitoring', ui.monitoring.checked));
 ui.launchAtLogin.addEventListener('change', () => void saveSetting('launchAtLogin', ui.launchAtLogin.checked));
 ui.maxItems.addEventListener('change', () => void saveSetting('maxItems', Number(ui.maxItems.value)));
+ui.theme.addEventListener('click', () => {
+  const newTheme = ui.theme.getAttribute('aria-checked') === 'true' ? 'light' : 'dark';
+  void saveSetting('theme', newTheme);
+});
 
 document.addEventListener('keydown', (event) => {
   const target = event.target as HTMLElement;
