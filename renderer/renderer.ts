@@ -1,4 +1,4 @@
-import type { HistoryItem, Settings } from '../shared/types';
+import type { HistoryItem, Settings, ThemeMode } from '../shared/types';
 
 const api = window.clipboardHistory;
 const isMac = navigator.userAgent.includes('Mac');
@@ -16,6 +16,7 @@ function element<T extends HTMLElement>(id: string): T {
 const ui = {
   search: element<HTMLInputElement>('search'),
   clearSearch: element<HTMLButtonElement>('clear-search'),
+  themeToggle: element<HTMLButtonElement>('theme-toggle'),
   settingsToggle: element<HTMLButtonElement>('settings-toggle'),
   clearAll: element<HTMLButtonElement>('clear-all'),
   error: element<HTMLDivElement>('error'),
@@ -87,6 +88,59 @@ function formatShortcut(accelerator: string) {
 function preview(content: string) {
   // Strip zero-width characters and keep the DOM light for very large entries.
   return content.replace(/[\u200B-\u200D\uFEFF]/g, '').slice(0, PREVIEW_LENGTH);
+}
+
+// ---------------------------------------------------------------------------
+// Theme
+// ---------------------------------------------------------------------------
+
+function getSystemTheme(): 'light' | 'dark' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(mode: ThemeMode) {
+  const root = document.documentElement;
+  if (mode === 'system') {
+    root.classList.remove('light', 'dark');
+    const systemTheme = getSystemTheme();
+    root.classList.add(systemTheme);
+    ui.themeToggle.setAttribute('aria-pressed', String(systemTheme === 'dark'));
+    ui.themeToggle.setAttribute('aria-label', systemTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  } else {
+    root.classList.remove('light', 'dark');
+    root.classList.add(mode);
+    ui.themeToggle.setAttribute('aria-pressed', String(mode === 'dark'));
+    ui.themeToggle.setAttribute('aria-label', mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  }
+}
+
+function getNextTheme(current: ThemeMode): ThemeMode {
+  const systemTheme = getSystemTheme();
+  if (current === 'system') {
+    return systemTheme === 'dark' ? 'light' : 'dark';
+  }
+  if (current === 'light') return 'dark';
+  return 'light';
+}
+
+async function toggleTheme() {
+  const settings = await api.getSettings();
+  const currentTheme = settings.theme ?? 'system';
+  const nextTheme = getNextTheme(currentTheme);
+  await api.setSetting('theme', nextTheme);
+  applyTheme(nextTheme);
+}
+
+function initTheme() {
+  // Listen for system theme changes when in 'system' mode
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    const settings = api.getSettings();
+    settings.then(s => {
+      if ((s.theme ?? 'system') === 'system') {
+        applyTheme('system');
+      }
+    }).catch(() => undefined);
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +323,7 @@ ui.search.addEventListener('input', () => {
 ui.clearSearch.addEventListener('click', clearSearch);
 ui.emptyClearSearch.addEventListener('click', clearSearch);
 ui.dismissError.addEventListener('click', hideError);
+ui.themeToggle.addEventListener('click', toggleTheme);
 ui.settingsToggle.addEventListener('click', () => toggleSettings());
 ui.closeSettings.addEventListener('click', () => toggleSettings(false));
 
@@ -366,4 +421,8 @@ api.onFocusSearch(() => {
 
 ui.footerSettingsKey.textContent = isMac ? '⌘S' : 'Ctrl+S';
 void loadItems();
-api.getSettings().then(renderSettings).catch(() => showError('Could not load settings.'));
+api.getSettings().then((settings) => {
+  renderSettings(settings);
+  initTheme();
+  applyTheme(settings.theme ?? 'system');
+}).catch(() => showError('Could not load settings.'));
