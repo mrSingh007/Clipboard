@@ -1,4 +1,4 @@
-import type { HistoryItem, Settings } from '../shared/types';
+import type { HistoryItem, Settings, ThemeMode } from '../shared/types';
 
 const api = window.clipboardHistory;
 const isMac = navigator.userAgent.includes('Mac');
@@ -34,6 +34,7 @@ const ui = {
   footerShortcut: element<HTMLElement>('footer-shortcut'),
   footerSettingsKey: element<HTMLElement>('footer-settings-key'),
   itemTemplate: element<HTMLTemplateElement>('item-template'),
+  themeSegments: document.querySelectorAll<HTMLButtonElement>('.theme-segment'),
 };
 
 // ---------------------------------------------------------------------------
@@ -198,6 +199,23 @@ function clearSearch() {
 
 let currentShortcut = '';
 
+// Apply theme to the document element immediately (no flash)
+function applyTheme(theme: ThemeMode) {
+  const html = document.documentElement;
+  if (theme === 'system') {
+    html.removeAttribute('data-theme');
+  } else {
+    html.setAttribute('data-theme', theme);
+  }
+}
+
+function updateThemeSegments(theme: ThemeMode) {
+  ui.themeSegments.forEach((segment) => {
+    const isActive = segment.dataset.theme === theme;
+    segment.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
 function renderSettings(settings: Settings) {
   ui.monitoring.checked = settings.monitoring;
   ui.launchAtLogin.checked = settings.launchAtLogin;
@@ -205,6 +223,8 @@ function renderSettings(settings: Settings) {
   currentShortcut = settings.shortcut;
   stopRecordingShortcut();
   ui.footerShortcut.textContent = formatShortcut(settings.shortcut);
+  applyTheme(settings.theme);
+  updateThemeSegments(settings.theme);
 }
 
 function startRecordingShortcut() {
@@ -324,6 +344,36 @@ ui.shortcut.addEventListener('keydown', (event) => {
 ui.monitoring.addEventListener('change', () => void saveSetting('monitoring', ui.monitoring.checked));
 ui.launchAtLogin.addEventListener('change', () => void saveSetting('launchAtLogin', ui.launchAtLogin.checked));
 ui.maxItems.addEventListener('change', () => void saveSetting('maxItems', Number(ui.maxItems.value)));
+
+// Theme selector
+const themeOptions: ThemeMode[] = ['light', 'dark', 'system'];
+
+ui.themeSegments.forEach((segment, index) => {
+  segment.addEventListener('click', () => {
+    const theme = segment.dataset.theme as ThemeMode;
+    if (theme) {
+      applyTheme(theme);
+      void saveSetting('theme', theme);
+    }
+  });
+
+  // Keyboard navigation with arrow keys within the segmented control
+  segment.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      const currentIndex = themeOptions.indexOf(segment.dataset.theme as ThemeMode);
+      if (currentIndex === -1) return;
+      const nextIndex = event.key === 'ArrowRight'
+        ? (currentIndex + 1) % themeOptions.length
+        : (currentIndex - 1 + themeOptions.length) % themeOptions.length;
+      const nextTheme = themeOptions[nextIndex];
+      const nextSegment = document.querySelector<HTMLButtonElement>(`.theme-segment[data-theme="${nextTheme}"]`);
+      nextSegment?.focus();
+      applyTheme(nextTheme);
+      void saveSetting('theme', nextTheme);
+    }
+  });
+});
 
 document.addEventListener('keydown', (event) => {
   const target = event.target as HTMLElement;

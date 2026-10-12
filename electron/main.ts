@@ -2,7 +2,7 @@ import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, Menu, nativeIma
 import path from 'path';
 import { history } from './database';
 import { parseSetting, settings } from './settings';
-import type { Settings } from '../shared/types';
+import type { Settings, ThemeMode } from '../shared/types';
 
 // Two instances would both poll the clipboard and fight over the shortcut.
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -26,6 +26,16 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js') },
   });
   mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+
+  // Apply theme early to prevent flash on load.
+  mainWindow.webContents.on('did-finish-load', () => {
+    const theme = settings.get('theme') as ThemeMode;
+    if (theme && theme !== 'system') {
+      mainWindow?.webContents.executeJavaScript(
+        `document.documentElement.setAttribute('data-theme', '${theme}');`
+      );
+    }
+  });
 
   // Closing the window only hides it; the app keeps running in the tray.
   mainWindow.on('close', (event) => {
