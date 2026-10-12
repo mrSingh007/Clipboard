@@ -31,7 +31,7 @@ app.whenReady().then(() => {
   test('settings defaults and files are isolated', () => {
     assert.equal(path.dirname(settings.path), process.env.CLIPBOARD_TEST_USER_DATA);
     assert.deepEqual({ ...settings.store }, {
-      monitoring: true, shortcut: 'CommandOrControl+Shift+V', maxItems: 1000, launchAtLogin: true,
+      monitoring: true, shortcut: 'CommandOrControl+Shift+V', maxItems: 1000, launchAtLogin: true, theme: 'system',
     });
   });
   test('valid settings include unlimited history and normalize shortcut whitespace', () => {
@@ -49,7 +49,13 @@ app.whenReady().then(() => {
       for (const value of [0, 1, 'true', null]) assert.throws(() => parseSetting(key, value), /Invalid setting/);
     }
     for (const value of ['', '  ', false, 12, null]) assert.throws(() => parseSetting('shortcut', value), /Invalid setting/);
+    for (const value of ['custom', 'auto', '', 12, true, null]) assert.throws(() => parseSetting('theme', value), /Invalid setting/);
     for (const key of ['unknown', '__proto__', undefined, null]) assert.throws(() => parseSetting(key, true), /Invalid setting/);
+  });
+  test('valid theme settings are accepted', () => {
+    for (const value of ['light', 'dark', 'system']) {
+      assert.deepEqual(parseSetting('theme', value), { theme: value });
+    }
   });
   test('history preserves text and deduplicates by moving existing items to the top', () => {
     const content = "Hello 🌍\n'quoted' text";

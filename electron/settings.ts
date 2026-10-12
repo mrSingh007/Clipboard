@@ -1,5 +1,5 @@
 import Store from 'electron-store';
-import type { Settings } from '../shared/types';
+import type { Settings, ThemeMode } from '../shared/types';
 
 export const settings = new Store<Settings>({
   defaults: {
@@ -7,6 +7,7 @@ export const settings = new Store<Settings>({
     shortcut: 'CommandOrControl+Shift+V',
     maxItems: 1000,
     launchAtLogin: true,
+    theme: 'system',
   },
 });
 
@@ -29,6 +30,11 @@ export function parseSetting(key: unknown, value: unknown): Partial<Settings> {
       // Zero means "unlimited".
       if (typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 10000) {
         return { maxItems: value };
+      }
+      break;
+    case 'theme':
+      if (typeof value === 'string' && ['light', 'dark', 'system'].includes(value)) {
+        return { theme: value as ThemeMode };
       }
       break;
   }
