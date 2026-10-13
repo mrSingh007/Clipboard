@@ -649,9 +649,18 @@ body {
   background: color-mix(in srgb, var(--accent-warning) 15%, transparent);
 }
 
+.delete-button {
+  color: var(--accent-danger);
+}
+
 .delete-button:hover {
   color: var(--accent-danger);
-  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
+}
+
+.delete-button:focus-visible {
+  outline: 2px solid var(--accent-danger);
+  outline-offset: 2px;
 }
 
 /* ========================================
