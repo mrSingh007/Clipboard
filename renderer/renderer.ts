@@ -286,6 +286,7 @@ ui.list.addEventListener('click', (event) => {
     const pinned = li.classList.contains('pinned');
     void attempt(() => api.pinItem(id, !pinned), 'Could not update the pinned item.');
   } else if (action === 'delete') {
+    if (!window.confirm('Delete this clipboard item? This cannot be undone.')) return;
     void attempt(() => api.deleteItem(id), 'Could not delete that clipboard item.');
   } else {
     void copyItem(id);
