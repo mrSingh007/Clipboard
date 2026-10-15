@@ -50,7 +50,7 @@
 
 /* Dark Mode */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg-primary: #1e1e1e;
     --bg-secondary: #252526;
     --bg-tertiary: #2d2d2d;
@@ -82,6 +82,70 @@
   }
 }
 
+/* Explicit Light Theme (overrides system preference) */
+:root[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f4;
+  --bg-hover: #e8eaed;
+  --bg-selected: #e8f0fe;
+  --bg-selected-border: #4285f4;
+  --bg-pinned: #fff8e1;
+  --bg-pinned-hover: #ffeeba;
+
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --text-tertiary: #80868b;
+  --text-inverse: #ffffff;
+  --text-link: #1a73e8;
+
+  --border-color: #dadce0;
+  --border-focus: #4285f4;
+
+  --accent-primary: #4285f4;
+  --accent-primary-hover: #3367d6;
+  --accent-danger: #d93025;
+  --accent-danger-hover: #c5221f;
+  --accent-warning: #f9ab00;
+  --accent-success: #34a853;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Explicit Dark Theme (overrides system preference) */
+:root[data-theme="dark"] {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d2d;
+  --bg-hover: #333333;
+  --bg-selected: #2d5aa0;
+  --bg-selected-border: #5a9eff;
+  --bg-pinned: #3d361f;
+  --bg-pinned-hover: #4a4020;
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --text-tertiary: #707070;
+  --text-inverse: #1e1e1e;
+  --text-link: #8ab4f8;
+
+  --border-color: #3c3c3c;
+  --border-focus: #5a9eff;
+
+  --accent-primary: #5a9eff;
+  --accent-primary-hover: #7ab6ff;
+  --accent-danger: #f28b82;
+  --accent-danger-hover: #ffa7a0;
+  --accent-warning: #fdd663;
+  --accent-success: #81c995;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
 /* ========================================
    Reset & Base
    ======================================== */
@@ -96,6 +160,18 @@
 
 [hidden] {
   display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 html, body {
@@ -452,6 +528,124 @@ body {
 .shortcut-hint {
   font-size: 11px;
   color: var(--text-tertiary);
+}
+
+/* Theme Selector (Segmented Control) */
+.theme-selector {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.theme-selector legend {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.segmented-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.segment:first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.segment:last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.segment input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
+}
+
+.segment-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+}
+
+.segment:hover {
+  color: var(--text-primary);
+}
+
+.segment:hover .segment-icon {
+  color: var(--text-primary);
+}
+
+/* Focus styles for keyboard navigation */
+.segment:has(input:focus-visible) {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+/* Ensure the radio input can be focused via keyboard but remains visually hidden */
+.segment input[type="radio"]:focus {
+  /* Allow focus for keyboard navigation but keep visually hidden */
+}
+
+.segment:has(input:checked) {
+  background: var(--bg-primary);
+  color: var(--accent-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.segment:has(input:checked) .segment-icon {
+  color: var(--accent-primary);
+}
+
+.segment:has(input:checked):first-child {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+}
+
+.segment:has(input:checked):last-child {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* Reduced motion for theme transitions */
+@media (prefers-reduced-motion: reduce) {
+  .segment,
+  .segment-icon {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ========================================
