@@ -7,6 +7,7 @@ export const settings = new Store<Settings>({
     shortcut: 'CommandOrControl+Shift+V',
     maxItems: 1000,
     launchAtLogin: true,
+    theme: 'system',
   },
 });
 
@@ -24,6 +25,11 @@ export function parseSetting(key: unknown, value: unknown): Partial<Settings> {
       break;
     case 'shortcut':
       if (typeof value === 'string' && value.trim()) return { shortcut: value.trim() };
+      break;
+    case 'theme':
+      if (value === 'system' || value === 'light' || value === 'dark') {
+        return { theme: value };
+      }
       break;
     case 'maxItems':
       // Zero means "unlimited".

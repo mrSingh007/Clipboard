@@ -25,7 +25,8 @@ const ui = {
   closeSettings: element<HTMLButtonElement>('close-settings'),
   monitoring: element<HTMLInputElement>('setting-monitoring'),
   launchAtLogin: element<HTMLInputElement>('setting-launch-at-login'),
-  maxItems: element<HTMLSelectElement>('setting-max-items'),
+    maxItems: element<HTMLSelectElement>('setting-max-items'),
+    theme: element<HTMLSelectElement>('setting-theme'),
   shortcut: element<HTMLButtonElement>('setting-shortcut'),
   list: element<HTMLUListElement>('list'),
   empty: element<HTMLDivElement>('empty'),
@@ -202,6 +203,8 @@ function renderSettings(settings: Settings) {
   ui.monitoring.checked = settings.monitoring;
   ui.launchAtLogin.checked = settings.launchAtLogin;
   ui.maxItems.value = String(settings.maxItems);
+  ui.theme.value = settings.theme;
+  applyTheme(settings.theme);
   currentShortcut = settings.shortcut;
   stopRecordingShortcut();
   ui.footerShortcut.textContent = formatShortcut(settings.shortcut);
@@ -212,12 +215,19 @@ function startRecordingShortcut() {
   ui.shortcut.textContent = 'Press keys…';
 }
 
+function applyTheme(theme: Settings['theme']) {
+  const root = document.documentElement;
+  if (theme === 'system') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', theme);
+  }
+}
+
 function stopRecordingShortcut() {
   ui.shortcut.classList.remove('recording');
   ui.shortcut.textContent = formatShortcut(currentShortcut);
 }
-
-/** Turns a keydown into an Electron accelerator such as "Command+Shift+V", or null if it is not usable. */
 function acceleratorFromEvent(event: KeyboardEvent): string | null {
   const modifiers: string[] = [];
   if (event.metaKey) modifiers.push(isMac ? 'Command' : 'Super');
@@ -324,6 +334,7 @@ ui.shortcut.addEventListener('keydown', (event) => {
 ui.monitoring.addEventListener('change', () => void saveSetting('monitoring', ui.monitoring.checked));
 ui.launchAtLogin.addEventListener('change', () => void saveSetting('launchAtLogin', ui.launchAtLogin.checked));
 ui.maxItems.addEventListener('change', () => void saveSetting('maxItems', Number(ui.maxItems.value)));
+ui.theme.addEventListener('change', () => void saveSetting('theme', ui.theme.value as Settings['theme']));
 
 document.addEventListener('keydown', (event) => {
   const target = event.target as HTMLElement;

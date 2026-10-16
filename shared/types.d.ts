@@ -14,6 +14,10 @@ export interface Settings {
   shortcut: string;
   maxItems: number;
   launchAtLogin: boolean;
+  /**
+   * UI appearance. `system` follows the OS colour‑scheme, `light` forces the light theme, and `dark` forces dark.
+   */
+  theme: 'system' | 'light' | 'dark';
 }
 
 /** The API the preload script exposes to the renderer as `window.clipboardHistory`. */
