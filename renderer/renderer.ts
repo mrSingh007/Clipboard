@@ -1,4 +1,4 @@
-import type { HistoryItem, Settings } from '../shared/types';
+import type { HistoryItem, Settings, ThemeMode } from '../shared/types';
 
 const api = window.clipboardHistory;
 const isMac = navigator.userAgent.includes('Mac');
@@ -34,7 +34,60 @@ const ui = {
   footerShortcut: element<HTMLElement>('footer-shortcut'),
   footerSettingsKey: element<HTMLElement>('footer-settings-key'),
   itemTemplate: element<HTMLTemplateElement>('item-template'),
+  themeSegments: document.querySelectorAll<HTMLLabelElement>('.segment[data-theme]'),
+  themeInputs: document.querySelectorAll<HTMLInputElement>('.segment input[name="theme"]'),
 };
+
+// ---------------------------------------------------------------------------
+// Theme Handling
+// ---------------------------------------------------------------------------
+
+/** Apply theme to the document by setting data-theme attribute on :root */
+function applyTheme(mode: ThemeMode) {
+  const root = document.documentElement;
+  if (mode === 'system') {
+    root.removeAttribute('data-theme');
+  } else {
+    root.setAttribute('data-theme', mode);
+  }
+}
+
+/** Get the effective theme (resolves 'system' to actual OS preference) */
+function getEffectiveTheme(mode: ThemeMode): 'light' | 'dark' {
+  if (mode !== 'system') return mode;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+/** Initialize theme from saved setting or system preference */
+function initTheme(savedTheme: ThemeMode) {
+  applyTheme(savedTheme);
+  // Listen for OS theme changes when in 'system' mode
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  mediaQuery.addEventListener('change', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (!currentTheme || currentTheme === 'system') {
+      applyTheme('system');
+    }
+  });
+}
+
+/** Update theme selector UI to reflect current theme */
+function updateThemeSelector(theme: ThemeMode) {
+  ui.themeInputs.forEach((input) => {
+    input.checked = input.value === theme;
+  });
+  ui.themeSegments.forEach((segment) => {
+    segment.classList.toggle('checked', segment.dataset.theme === theme);
+  });
+}
+
+/** Handle theme change from user interaction */
+async function handleThemeChange(theme: ThemeMode) {
+  applyTheme(theme);
+  updateThemeSelector(theme);
+  localStorage.setItem('theme', theme);
+  await api.setSetting('theme', theme);
+}
 
 // ---------------------------------------------------------------------------
 // State
@@ -205,6 +258,7 @@ function renderSettings(settings: Settings) {
   currentShortcut = settings.shortcut;
   stopRecordingShortcut();
   ui.footerShortcut.textContent = formatShortcut(settings.shortcut);
+  updateThemeSelector(settings.theme);
 }
 
 function startRecordingShortcut() {
@@ -325,6 +379,29 @@ ui.monitoring.addEventListener('change', () => void saveSetting('monitoring', ui
 ui.launchAtLogin.addEventListener('change', () => void saveSetting('launchAtLogin', ui.launchAtLogin.checked));
 ui.maxItems.addEventListener('change', () => void saveSetting('maxItems', Number(ui.maxItems.value)));
 
+// Theme selector events
+ui.themeInputs.forEach((input) => {
+  input.addEventListener('change', () => {
+    const theme = input.value as ThemeMode;
+    void handleThemeChange(theme);
+  });
+});
+
+// Also handle click on segment label for better UX
+ui.themeSegments.forEach((segment) => {
+  segment.addEventListener('click', (event) => {
+    // Only handle clicks on the label itself, not the radio input (which fires change)
+    if (event.target === segment || event.target === segment.querySelector('.segment-icon') || event.target === segment.querySelector('.segment-label')) {
+      const input = segment.querySelector<HTMLInputElement>('input[type="radio"]');
+      if (input && !input.checked) {
+        input.checked = true;
+        const theme = input.value as ThemeMode;
+        void handleThemeChange(theme);
+      }
+    }
+  });
+});
+
 document.addEventListener('keydown', (event) => {
   const target = event.target as HTMLElement;
   // Let native controls in the settings panel keep their own keyboard handling.
@@ -365,5 +442,15 @@ api.onFocusSearch(() => {
 // ---------------------------------------------------------------------------
 
 ui.footerSettingsKey.textContent = isMac ? '⌘S' : 'Ctrl+S';
+
+// Initialize theme immediately to avoid flash (read from localStorage as fallback before IPC)
+const savedTheme = (localStorage.getItem('theme') as ThemeMode) || 'system';
+initTheme(savedTheme);
+
 void loadItems();
-api.getSettings().then(renderSettings).catch(() => showError('Could not load settings.'));
+api.getSettings().then((settings) => {
+  // Persist theme to localStorage for instant restore on next launch
+  localStorage.setItem('theme', settings.theme);
+  initTheme(settings.theme);
+  renderSettings(settings);
+}).catch(() => showError('Could not load settings.'));
