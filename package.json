@@ -31,7 +31,8 @@
       "dist/**",
       "assets/**",
       "!assets/src/**",
-      "package.json"
+      "package.json",
+      "LICENSE"
     ],
     "mac": {
       "category": "public.app-category.productivity",
